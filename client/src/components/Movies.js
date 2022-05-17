@@ -10,7 +10,6 @@ export default class Movies extends Component {
 
   componentDidMount() {
     fetch("http://localhost:4000/v1/movies")
-      // .then((response) => response.json())
       .then((response) => {
         if (response.status !== "200") {
           let err = Error;

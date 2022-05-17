@@ -41,7 +41,7 @@ export default function App() {
           <div className="col-md-10">
             <Routes>
 
-              <Route path="/movies/:id" element={OneMovie} />
+              <Route path="/movies/:id" element={<OneMovie />} />
 
               <Route path="/movies" element={<Movies />} />
               <Route exact path="/by-category" element={<Categories />} />
