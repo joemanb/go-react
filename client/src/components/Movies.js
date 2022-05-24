@@ -14,7 +14,7 @@ export default class Movies extends Component {
         if (response.status !== "200") {
           let err = Error;
           err.message = "Invalid response code: " + response.status;
-          this.setState({error: err});
+          this.setState({ error: err });
         }
         return response.json();
       })
@@ -23,12 +23,12 @@ export default class Movies extends Component {
           movies: json.movies,
           isLoaded: true,
         },
-        (error) => {
-          this.setState({
-            isLoaded: true,
-            error
-          });
-        }
+          (error) => {
+            this.setState({
+              isLoaded: true,
+              error
+            });
+          }
         );
       });
   }
