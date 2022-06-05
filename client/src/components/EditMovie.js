@@ -1,4 +1,8 @@
 import React, { Component, Fragment } from 'react';
+import { Link } from 'react-router-dom';
+import { confirmAlert } from 'react-confirm-alert'; // Import
+import 'react-confirm-alert/src/react-confirm-alert.css'; // Import css
+
 import './EditMovie.css';
 import Input from './form-components/Input';
 import Select from './form-components/Select';
@@ -138,6 +142,37 @@ export default class EditMovie extends Component {
         }
     }
 
+    confirmDelete = (e) => {
+        confirmAlert({
+            title: 'Delete Movie?',
+            message: 'Are you sure?',
+            buttons: [
+              {
+                label: 'Yes',
+                onClick: () => {
+                    fetch("http://localhost:4000/v1/admin/deletemovie/" + this.state.movie.id, {method: "GET"})
+                    .then(response => response.json)
+                    .then(data => {
+                        if (data.err) {
+                            this.setState({
+                                alert: {type: "alert-danger", message: data.error.message}
+                            })
+                        } else {
+                            this.props.history.push({
+                                pathname: "/admin",
+                            })
+                        }
+                    })
+                }
+              },
+              {
+                label: 'No',
+                onClick: () => alert('Click No')
+              }
+            ]
+          });
+    }
+
     render() {
         let { movie, isLoaded, error } = this.state;
 
@@ -153,7 +188,7 @@ export default class EditMovie extends Component {
                         alertType={this.state.alert.type}
                         alertMessage={this.state.alert.message}
                     />
-                    
+
                     <hr />
                     <form onSubmit={this.handleSubmit}>
                         <input
@@ -215,6 +250,11 @@ export default class EditMovie extends Component {
                         />
 
                         <button className="btn btn-primary">Save</button>
+                        <Link to="/admin" className='btn btn-warning ms-3'>Cancel</Link>
+                        {movie.id > 0 && (
+                            <a href="#!" onClick={() => this.confirmDelete()}
+                                className="btn btn-danger ms-3">Delete</a>
+                        )}
                     </form>
 
                 </Fragment>
