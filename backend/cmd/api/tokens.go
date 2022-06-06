@@ -14,7 +14,7 @@ import (
 
 var validUser = models.User{
 	ID:       10,
-	Email:    "test@test.com",
+	Email:    "me@me.com",
 	Password: "$2a$12$wNuAvMzOo/kn19oXThO/ZuBQ3Tqr.Q49bGEegGAY2pOy8uPNtR58O",
 }
 
