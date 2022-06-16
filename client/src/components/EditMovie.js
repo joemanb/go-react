@@ -158,30 +158,39 @@ export default class EditMovie extends Component {
             title: 'Delete Movie?',
             message: 'Are you sure?',
             buttons: [
-              {
-                label: 'Yes',
-                onClick: () => {
-                    fetch("http://localhost:4000/v1/admin/deletemovie/" + this.state.movie.id, {method: "GET"})
-                    .then(response => response.json)
-                    .then(data => {
-                        if (data.err) {
-                            this.setState({
-                                alert: {type: "alert-danger", message: data.error.message}
+                {
+                    label: 'Yes',
+                    onClick: () => {
+                        const myHeaders = new Headers();
+                        myHeaders.append("Content-Type", "application/json");
+                        myHeaders.append("Authorization", "Bearer " + this.props.jwt);
+
+                        fetch("http://localhost:4000/v1/admin/deletemovie/" + this.state.movie.id,
+                            {
+                                method: "GET",
+                                headers: myHeaders
+                            }
+                        )
+                            .then(response => response.json)
+                            .then(data => {
+                                if (data.err) {
+                                    this.setState({
+                                        alert: { type: "alert-danger", message: data.error.message }
+                                    })
+                                } else {
+                                    this.props.history.push({
+                                        pathname: "/admin",
+                                    })
+                                }
                             })
-                        } else {
-                            this.props.history.push({
-                                pathname: "/admin",
-                            })
-                        }
-                    })
+                    }
+                },
+                {
+                    label: 'No',
+                    onClick: () => alert('Click No')
                 }
-              },
-              {
-                label: 'No',
-                onClick: () => alert('Click No')
-              }
             ]
-          });
+        });
     }
 
     render() {

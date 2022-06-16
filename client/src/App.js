@@ -22,8 +22,21 @@ export default class App extends Component {
     this.setState({ jwt: jwt });
   }
 
+  componentDidMount() {
+    let t = window.localStorage.getItem("jwt");
+
+    if (t) {
+      if (this.state.jwt === "") {
+        this.setState({
+          jwt: JSON.parse(t)
+        });
+      }
+    }
+  }
+
   logout = () => {
     this.setState({ jwt: "" });
+    window.localStorage.removeItem("jwt");
   }
 
   render() {
@@ -103,9 +116,13 @@ export default class App extends Component {
                 )}
                 />
 
-                <Route path="/admin">
-                  <Admin />
-                </Route>
+                <Route
+                  path="/admin"
+                  component={(props) => (
+                    <Admin {...props} jwt={this.state.props} />
+                  )}
+                />
+
                 <Route path="/">
                   <Home />
                 </Route>
