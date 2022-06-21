@@ -2,9 +2,13 @@ package main
 
 import (
 	"backend/models"
+	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/graphql-go/graphql"
 )
@@ -41,12 +45,35 @@ var fields = graphql.Fields{
 
 		},
 	},
+	"search": &graphql.Field{
+		Type:        graphql.NewList(movieType),
+		Description: "Search movies by title",
+		Args: graphql.FieldConfigArgument{
+			"titleContains": &graphql.ArgumentConfig{
+				Type: graphql.String,
+			},
+		},
+		Resolve: func(params graphql.ResolveParams) (interface{}, error) {
+			var theList []*models.Movie
+			search, ok := params.Args["titleContains"].(string)
+
+			if ok {
+				for _, currentMovie := range movies {
+					if strings.Contains(currentMovie.Title, search) {
+						theList = append(theList, currentMovie)
+					}
+				}
+			}
+
+			return theList, nil
+		},
+	},
 }
 
-var movieType = graphql.NewObject((
+var movieType = graphql.NewObject(
 	graphql.ObjectConfig{
 		Name: "Movie",
-		Fields: graphql.Fields {
+		Fields: graphql.Fields{
 			"id": &graphql.Field{
 				Type: graphql.Int,
 			},
@@ -54,43 +81,41 @@ var movieType = graphql.NewObject((
 				Type: graphql.String,
 			},
 			"description": &graphql.Field{
-				Type: graphql.String,	
+				Type: graphql.String,
 			},
 			"year": &graphql.Field{
-				Type: graphql.DateTime,	
+				Type: graphql.Int,
 			},
 
 			"release_date": &graphql.Field{
-				Type: graphql.DateTime,	
+				Type: graphql.DateTime,
 			},
 
-
 			"runtime": &graphql.Field{
-				Type: graphql.Int,	
+				Type: graphql.Int,
 			},
 
 			"rating": &graphql.Field{
-				Type: graphql.Int,	
+				Type: graphql.Int,
 			},
 
 			"mpaa_rating": &graphql.Field{
-				Type: graphql.String,	
+				Type: graphql.String,
 			},
-
 
 			"created_at": &graphql.Field{
-				Type: graphql.DateTime,	
+				Type: graphql.DateTime,
 			},
 
-			
 			"updated_at": &graphql.Field{
-				Type: graphql.DateTime,	
+				Type: graphql.DateTime,
 			},
-
+			"poster": &graphql.Field{
+				Type: graphql.String,
+			},
 		},
-		
 	},
-))
+)
 
 func (app *application) moviesGraphQL(w http.ResponseWriter, r *http.Request) {
 	movies, _ = app.models.DB.All()
@@ -99,4 +124,26 @@ func (app *application) moviesGraphQL(w http.ResponseWriter, r *http.Request) {
 	query := string(q)
 
 	log.Println(query)
+
+	rootQuery := graphql.ObjectConfig{Name: "RootQuery", Fields: fields}
+	schemaConfig := graphql.SchemaConfig{Query: graphql.NewObject(rootQuery)}
+	schema, err := graphql.NewSchema(schemaConfig)
+
+	if err != nil {
+		app.errorJSON(w, errors.New("failed to create schema"))
+		log.Println(err)
+		return
+	}
+
+	params := graphql.Params{Schema: schema, RequestString: query}
+	resp := graphql.Do(params)
+
+	if len(resp.Errors) > 0 {
+		app.errorJSON(w, errors.New(fmt.Sprintf("failed: %+v", resp.Errors)))
+	}
+
+	j, _ := json.MarshalIndent(resp, "", "  ")
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(j)
 }
